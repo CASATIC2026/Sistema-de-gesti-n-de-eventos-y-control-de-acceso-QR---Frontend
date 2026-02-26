@@ -2,6 +2,7 @@
     <h1>Sistema de gestión de Events </h1>
   <AdminDashboard />
 
+ <router-view />
 </template>
 
 <script setup>
