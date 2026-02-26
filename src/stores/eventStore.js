@@ -17,7 +17,7 @@ export const useEventStore = defineStore('event', {
         const response = await eventService.getAll()
         this.events = response.data
       } catch (error) {
-        this.error = 'Error al cargar eventos'
+        this.error = 'Error al cargar eventoss'
       } finally {
         this.loading = false
       }
