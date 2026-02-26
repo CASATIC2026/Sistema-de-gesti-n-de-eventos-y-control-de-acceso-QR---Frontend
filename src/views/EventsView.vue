@@ -6,8 +6,9 @@
 
     <div class="bg-white rounded-xl shadow-sm p-6">
       <p class="text-gray-500">
-        Aquí irá la tabla de eventos.
+        Aqui irá la tabla de events
       </p>
     </div>
   </div>
 </template>
+
