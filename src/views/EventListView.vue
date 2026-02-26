@@ -1,6 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-6">
+
       <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold text-gray-900">Eventos</h2>
         <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
@@ -23,6 +24,7 @@
       </tr>
     </thead>
     
+   
      <tbody class="bg-white divide-y divide-gray-200">
       <tr v-for="event in eventStore.events" :key="event.id">
         <td class="px-6 py-4">{{ event.name }}</td>
@@ -33,11 +35,13 @@
           <button class="text-red-600 hover:text-red-900">Eliminar</button>
         </td>
       </tr>
+      
     </tbody>
   </table>
-      </div>
     </div>
+     </div>
   </AdminLayout>
+
 </template>
 
 <script setup>
