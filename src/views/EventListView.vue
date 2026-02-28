@@ -9,6 +9,21 @@
                 </button>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-sm font-medium text-gray-500">Total Eventos</h3>
+                    <p class="text-2xl font-bold">{{ eventStore.totalEvents }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-sm font-medium text-gray-500">Próximos</h3>
+                    <p class="text-2xl font-bold">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-sm font-medium text-gray-500">Finalizados</h3>
+                    <p class="text-2xl font-bold">0</p>
+                </div>
+            </div>
+
             <div v-if="eventStore.loading" class="text-center p-8">
                 Cargando...
             </div>
@@ -49,11 +64,11 @@ import AdminLayout from '../components/layout/AdminLayout.vue'
 
 /*metodo para formatear fechas en españo */
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+    return new Date(date).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    })
 }
 
 const eventStore = useEventStore()
