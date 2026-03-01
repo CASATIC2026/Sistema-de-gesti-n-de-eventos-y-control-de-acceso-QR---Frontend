@@ -1,10 +1,11 @@
-# Actualizar EventCreateView.vue con todos los campos:
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useEventStore } from '@/stores/eventStore'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 const router = useRouter()
+const eventStore = useEventStore()
 
 const form = ref({
   name: '',
@@ -15,6 +16,16 @@ const form = ref({
   capacity: '',
   status: 'activo'
 })
+
+const handleSubmit = async () => {
+  try {
+    await eventStore.createEvent(form.value)
+    router.push('/')
+  } catch (error) {
+    alert('Error al crear el evento')
+  }
+}
+
 </script>
 
 <template>
@@ -22,7 +33,7 @@ const form = ref({
     <div class="max-w-2xl mx-auto">
       <h2 class="text-2xl font-bold mb-6">Crear Nuevo Evento</h2>
       
-      <form class="space-y-6 bg-white p-6 rounded-lg shadow-sm">
+      <form @submit.prevent="handleSubmit" class="space-y-6 bg-white p-6 rounded-lg shadow-sm">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
           <input v-model="form.name" type="text" required class="w-full px-3 py-2 border rounded-md">
