@@ -4,9 +4,11 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
-      path: '/',
-      name: 'events',
-      component: () => import('../views/EventListView.vue')
+
+      path: '/events/create',
+      name: 'create-event',
+      component: () => import('@/views/events/EventCreateView.vue')
+
     }
   ]
 })
