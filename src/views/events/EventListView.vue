@@ -62,8 +62,8 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { useEventStore } from '../stores/eventStore'
-import AdminLayout from '../components/layout/AdminLayout.vue'
+import { useEventStore } from '../../stores/eventStore'
+import AdminLayout from '../../components/layout/AdminLayout.vue'
 
 /*metodo para formatear fechas en españo */
 const formatDate = (date) => {

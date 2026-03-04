@@ -4,9 +4,9 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
-      path: '/events/:id/edit',
-      name: 'edit-event',
-      component: () => import('@/views/events/EventEditView.vue')
+      path: '/',
+      name: 'events',
+      component: () => import('@/views/events/EventListView.vue')
     }
   ]
 })
