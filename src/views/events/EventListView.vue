@@ -6,9 +6,9 @@
                 <h2 class="text-2xl font-bold text-gray-900">Eventos</h2>
 
                 <router-link to="/events/create">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                    + Nuevo Evento
-                </button>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        + Nuevo Evento
+                    </button>
                 </router-link>
             </div>
 
@@ -47,8 +47,13 @@
                             <td class="px-6 py-4">{{ formatDate(event.date) }}</td>
                             <td class="px-6 py-4">{{ event.capacity || 'Ilimitado' }}</td>
                             <td class="px-6 py-4 text-right space-x-2">
-                                <button class="text-blue-600 hover:text-blue-900">Editar</button>
-                                <button class="text-red-600 hover:text-red-900">Eliminar</button>
+                                <router-link :to="`/events/${event.id}/edit`">
+                                    <button class="text-blue-600 hover:text-blue-900">
+                                    Editar
+                                    </button>
+                                </router-link>  
+                                <button @click="handleDelete(event.id)"
+                                    class="text-red-600 hover:text-red-900">Eliminar</button>
                             </td>
                         </tr>
                     </tbody>
