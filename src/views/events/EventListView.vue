@@ -57,8 +57,10 @@
                                         Editar
                                     </button>
                                 </router-link>
-                                <button @click="handleDelete(event.id)"
-                                    class="text-red-600 hover:text-red-900">Eliminar</button>
+                                <button @click="handleDelete(event.id)" class="text-red-600 hover:text-red-900"
+                                    :disabled="eventStore.loading">
+                                    Eliminar
+                                </button>
                             </td>
                         </tr>
                     </tbody>
