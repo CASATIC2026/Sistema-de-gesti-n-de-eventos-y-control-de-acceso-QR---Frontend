@@ -9,7 +9,7 @@ export const useEventStore = defineStore('event', {
     error: null
   }),
 
-   actions: {
+  actions: {
     async fetchEvents() {
       this.loading = true
       this.error = null
@@ -17,25 +17,24 @@ export const useEventStore = defineStore('event', {
         const response = await eventService.getAll()
         this.events = response.data
       } catch (error) {
-        this.error = 'Error al cargar eventoss'
-      } finally {
-        this.loading = false
+        this.error = error.response?.data?.message || 'Error al cargar eventos'
+        console.error(error)
       }
     },
 
     async deleteEvent(id) {
-  this.loading = true
-  this.error = null
-  try {
-    await eventService.delete(id)
-    this.events = this.events.filter(e => e.id !== id)
-  } catch (error) {
-    this.error = 'Error al eliminar evento'
-    throw error
-  } finally {
-    this.loading = false
-  }
-}
+      this.loading = true
+      this.error = null
+      try {
+        await eventService.delete(id)
+        this.events = this.events.filter(e => e.id !== id)
+      } catch (error) {
+        this.error = 'Error al eliminar evento'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    }
   },
 
   getters: {

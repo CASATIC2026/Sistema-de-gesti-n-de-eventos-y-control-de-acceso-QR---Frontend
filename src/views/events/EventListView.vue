@@ -31,6 +31,11 @@
                 Cargando...
             </div>
 
+            <!-- Mostrar error si existe -->
+            <div v-if="eventStore.error" class="bg-red-50 text-red-800 p-4 rounded-md">
+                {{ eventStore.error }}
+            </div>
+
             <div v-else class="bg-white shadow-sm rounded-lg overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -49,9 +54,9 @@
                             <td class="px-6 py-4 text-right space-x-2">
                                 <router-link :to="`/events/${event.id}/edit`">
                                     <button class="text-blue-600 hover:text-blue-900">
-                                    Editar
+                                        Editar
                                     </button>
-                                </router-link>  
+                                </router-link>
                                 <button @click="handleDelete(event.id)"
                                     class="text-red-600 hover:text-red-900">Eliminar</button>
                             </td>
@@ -82,13 +87,13 @@ const formatDate = (date) => {
 const eventStore = useEventStore()
 
 const handleDelete = async (id) => {
-  if (confirm('¿Estás seguro de eliminar este evento?')) {
-    try {
-      await eventStore.deleteEvent(id)
-    } catch (error) {
-      alert('Error al eliminar el evento')
+    if (confirm('¿Estás seguro de eliminar este evento?')) {
+        try {
+            await eventStore.deleteEvent(id)
+        } catch (error) {
+            alert('Error al eliminar el evento')
+        }
     }
-  }
 }
 
 onMounted(() => {
