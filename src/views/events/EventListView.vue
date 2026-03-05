@@ -81,6 +81,16 @@ const formatDate = (date) => {
 
 const eventStore = useEventStore()
 
+const handleDelete = async (id) => {
+  if (confirm('¿Estás seguro de eliminar este evento?')) {
+    try {
+      await eventStore.deleteEvent(id)
+    } catch (error) {
+      alert('Error al eliminar el evento')
+    }
+  }
+}
+
 onMounted(() => {
     eventStore.fetchEvents()
 })

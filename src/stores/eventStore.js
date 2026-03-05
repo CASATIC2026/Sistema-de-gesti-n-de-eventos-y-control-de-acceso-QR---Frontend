@@ -21,7 +21,21 @@ export const useEventStore = defineStore('event', {
       } finally {
         this.loading = false
       }
-    }
+    },
+
+    async deleteEvent(id) {
+  this.loading = true
+  this.error = null
+  try {
+    await eventService.delete(id)
+    this.events = this.events.filter(e => e.id !== id)
+  } catch (error) {
+    this.error = 'Error al eliminar evento'
+    throw error
+  } finally {
+    this.loading = false
+  }
+}
   },
 
   getters: {
