@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import eventService from '@/services/eventService'
+/*import eventService from '@/services/eventService'*/
+import eventService from '@/services/eventService.mock'
 
 export const useEventStore = defineStore('event', {
   state: () => ({
@@ -87,12 +88,12 @@ export const useEventStore = defineStore('event', {
     }
   },
 
-  getters: {
-    totalEvents: (state) => state.events.length,
-    activeEvents: (state) => state.events.filter(e => {
-      // esto es asumiendo que los eventos activos son futuros o no tienen estado
-      return new Date(e.eventDate) > new Date()
-    }),
-    upcomingEvents: (state) => state.events.filter(e => new Date(e.eventDate) > new Date())
-  }
-})
+    getters: {
+      totalEvents: (state) => state.events.length,
+      activeEvents: (state) => state.events.filter(e => {
+        // esto es asumiendo que los eventos activos son futuros o no tienen estado
+        return new Date(e.eventDate) > new Date()
+      }),
+      upcomingEvents: (state) => state.events.filter(e => new Date(e.eventDate) > new Date())
+    }
+  })

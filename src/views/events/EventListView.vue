@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useEventStore } from '../../stores/eventStore'
 import AdminLayout from '../../components/layout/AdminLayout.vue'
 
