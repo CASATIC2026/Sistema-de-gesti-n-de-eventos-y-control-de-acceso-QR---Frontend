@@ -11,17 +11,35 @@ const eventStore = useEventStore()
 const form = ref({
   name: '',
   description: '',
-  date: '',
-  time: '',
+  eventDate: '',
   location: '',
-  capacity: '',
-  status: 'activo'
+  maxCapacity: ''
 })
 
 onMounted(async () => {
-  const event = eventStore.events.find(e => e.id === Number(route.params.id))
+  // Si ya tenemos el evento en el store
+  let event = eventStore.events.find(e => e.id === Number(route.params.id))
+
+  // Si no está en store, lo buscamos individualmente
+  if (!event) {
+    try {
+      const response = await eventService.getById(route.params.id)
+      event = response.data
+    } catch (error) {
+      alert('Error al cargar el evento')
+      router.push('/')
+      return
+    }
+  }
+
   if (event) {
-    form.value = { ...event }
+    form.value = {
+      name: event.name || '',
+      description: event.description || '',
+      eventDate: event.eventDate ? event.eventDate.split('T')[0] : '',
+      location: event.location || '',
+      maxCapacity: event.maxCapacity || ''
+    }
   }
 })
 
@@ -30,7 +48,7 @@ const handleSubmit = async () => {
     await eventStore.updateEvent(route.params.id, form.value)
     router.push('/')
   } catch (error) {
-    alert('Error al actualizar el evento')
+    alert('Error al actualizar el evento: ' + (error.response?.data?.message || error.message))
   }
 }
 </script>
@@ -42,43 +60,34 @@ const handleSubmit = async () => {
       
       <form @submit.prevent="handleSubmit" class="space-y-6 bg-white p-6 rounded-lg shadow-sm">
         <!-- es el mismo formulario que create -->
-         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
-          <input v-model="form.name" type="text" required class="w-full px-3 py-2 border rounded-md">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del evento *</label>
+          <input v-model="form.name" type="text" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Ej: Conferencia de Tecno 2026">
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
-          <textarea v-model="form.description" rows="3" class="w-full px-3 py-2 border rounded-md"></textarea>
+          <textarea v-model="form.description" rows="3" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Describe el evento..."></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
-            <input v-model="form.date" type="date" required class="w-full px-3 py-2 border rounded-md">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha del Evento *</label>
+            <input v-model="form.date" type="date" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              <p class="text-sm text-gray-500 mt-1">Formato: AAAA-MM-DD</p>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Hora</label>
-            <input v-model="form.time" type="time" class="w-full px-3 py-2 border rounded-md">
-          </div>
-        </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Lugar</label>
-          <input v-model="form.location" type="text" class="w-full px-3 py-2 border rounded-md">
+          <input v-model="form.location" type="text" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"  placeholder="Ej: Centro de Convenciones">
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Aforo Máximo</label>
-          <input v-model="form.capacity" type="number" min="1" class="w-full px-3 py-2 border rounded-md">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Capacidad Máxima</label>
+          <input v-model="form.capacity" type="number" min="1" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"  placeholder="Ej: 1003">
+          <input v-model="form.maxCapacity" type="number" min="0" class="w-full px-3 py-2 border rounded-md">
         </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-          <select v-model="form.status" class="w-full px-3 py-2 border rounded-md">
-            <option value="activo">Activo</option>
-            <option value="borrador">Borrador</option>
-          </select>
         </div>
 
         <div class="flex justify-end space-x-3">
