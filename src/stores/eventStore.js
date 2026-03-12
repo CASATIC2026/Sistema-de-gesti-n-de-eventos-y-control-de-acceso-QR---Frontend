@@ -34,7 +34,7 @@ export const useEventStore = defineStore('event', {
           name: eventData.name,
           description: eventData.description || '',
           eventDate: eventData.eventDate, // antes era date
-          maxCapacity: eventData.maxCapacity ? parseInt(eventData.maxCapacity) : 0, // antes era capacity
+          maxCapacity: eventData.maxCapacity ? parseInt(eventData.maxCapacity) : null, // antes era capacity // null = ilimitado
           location: eventData.location || ''
         }
         const response = await eventService.create(payload)
@@ -56,7 +56,7 @@ export const useEventStore = defineStore('event', {
           name: eventData.name,
           description: eventData.description || '',
           eventDate: eventData.eventDate,
-          maxCapacity: eventData.maxCapacity ? parseInt(eventData.maxCapacity) : 0,
+          maxCapacity: eventData.maxCapacity ? parseInt(eventData.maxCapacity) : null,// null = ilimitado
           location: eventData.location || ''
         }
         const response = await eventService.update(id, payload)

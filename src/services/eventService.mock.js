@@ -1,6 +1,6 @@
 let events = [
   { id: 1, name: 'Evento Demo', eventDate: '2026-03-10', location: 'San Salvador', maxCapacity: 100 },
-  { id: 2, name: 'Evento Prueba', eventDate: '2026-04-01', location: 'Online', maxCapacity: 0 }
+  { id: 2, name: 'Evento Prueba', eventDate: '2026-04-01', location: 'Santa ana', maxCapacity: 1 }
 ];
 
 export default {
