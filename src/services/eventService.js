@@ -1,19 +1,11 @@
 import api from './api'
 
-export default {
-  getAll() {
-    return api.get('/events')
-  },
-  getById(id) {
-    return api.get(`/events/${id}`)
-  },
-  create(data) {
-    return api.post('/events', data)
-  },
-  update(id, data) {
-    return api.put(`/events/${id}`, data)
-  },
-  delete(id) {
-    return api.delete(`/events/${id}`)
-  }
-}
+export const getEvents = async () => {
+  const res = await api.get("/event");
+  return res.data;
+};
+
+export const createEvent = async (data) => {
+  const res = await api.post("/event", data);
+  return res.data;
+};
