@@ -67,15 +67,15 @@ onMounted(() => {
         </div>
 
         <div class="mt-4 flex gap-2">
-          <button @click="goToTickets(event.id)" class="flex-1 bg-secondary text-white py-1.5 rounded hover:opacity-90">
-            Tickets
+          <button @click="goToTickets(event.id)" class="flex-1 bg-primary text-white py-1.5 rounded hover:opacity-90">
+            Ver Tickets
           </button>
 
           <button @click="router.push(`/admin/events/edit/${event.id}`)"
             class="border border-primary text-primary px-3 py-1 rounded">
             Editar
           </button>
-          
+
         </div>
       </div>
     </div>

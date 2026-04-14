@@ -16,13 +16,22 @@ const login = async () => {
       password: password.value
     });
 
-    const token = res.data.token;
+    console.log("RESPUESTA LOGIN:", res.data);
+
+    const token = res.data.data.token;
+
+    console.log("TOKEN EXTRAÍDO:", token);
+
+    if (!token) {
+      throw new Error("Token no recibido del backend");
+    }
 
     localStorage.setItem("token", token);
 
     router.push("/admin/events");
 
   } catch (err) {
+    console.error(err);
     error.value = "Credenciales incorrectas";
   }
 };

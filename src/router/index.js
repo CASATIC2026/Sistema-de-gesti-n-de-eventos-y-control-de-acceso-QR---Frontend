@@ -44,23 +44,20 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const token = localStorage.getItem("token");
 
   // rutas públicas
   if (to.path === "/login") {
-    if (token) {
-      return next("/admin/dashboard"); // ya logueado
-    }
-    return next();
+      return token ? "/admin/dashboard" : true;
   }
 
   // rutas privadas
   if (!token) {
-    return next("/login");
+     return "/login";
   }
 
-  next();
+ return true;
 });
 
 
