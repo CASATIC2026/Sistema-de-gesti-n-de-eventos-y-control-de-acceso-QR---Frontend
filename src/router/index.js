@@ -12,6 +12,16 @@ const router = createRouter({
       component: () => import('../views/LoginView.vue')
     },
     {
+      path: '/register',
+      component: () => import('../views/RegisterView.vue')
+    },
+
+    {
+      path: '/events',
+      component: () => import('../views/EventUserView.vue')
+    },
+    
+    {
       path: '/admin',
       component: () => import('../components/layout/AdminLayout.vue'),
       children: [
@@ -48,16 +58,16 @@ router.beforeEach((to, from) => {
   const token = localStorage.getItem("token");
 
   // rutas públicas
-  if (to.path === "/login") {
-      return token ? "/admin/dashboard" : true;
+  if (to.path === "/login" || to.path === "/register") {
+    return token ? "/admin/dashboard" : true;
   }
 
   // rutas privadas
   if (!token) {
-     return "/login";
+    return "/login";
   }
 
- return true;
+  return true;
 });
 
 

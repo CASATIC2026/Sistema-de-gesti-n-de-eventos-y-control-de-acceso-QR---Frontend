@@ -1,13 +1,11 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:5255/api/event";
+import api from "./api";
 
 export const getEvents = async () => {
-  const response = await axios.get(API_URL);
+  const response = await api.get("/event");
   return response.data.data;
 };
 
 export const createEvent = async (eventData) => {
-  const response = await axios.post(API_URL, eventData);
+  const response = await api.post("/event", eventData);
   return response.data;
 };
