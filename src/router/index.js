@@ -3,10 +3,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    // Redirige la ruta raíz '/' a '/admin/dashboard'
     {
       path: '/',
-      redirect: '/admin/dashboard'
+      redirect: '/login'
+    },
+    {
+      path: '/login',
+      component: () => import('../views/LoginView.vue')
     },
     {
       path: '/admin',
@@ -40,5 +43,26 @@ const router = createRouter({
     }
   ]
 })
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem("token");
+
+  // rutas públicas
+  if (to.path === "/login") {
+    if (token) {
+      return next("/admin/dashboard"); // ya logueado
+    }
+    return next();
+  }
+
+  // rutas privadas
+  if (!token) {
+    return next("/login");
+  }
+
+  next();
+});
+
+
 
 export default router
