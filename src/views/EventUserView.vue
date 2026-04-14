@@ -2,36 +2,65 @@
 import { ref, onMounted } from 'vue';
 import { getEvents } from '@/services/eventService';
 import { getMyTickets } from '@/services/ticketService';
+import { registerTicket } from "@/services/ticketService";
 import api from '@/services/api';
 
 const mobileMenuOpen = ref(false);
 
 const events = ref([]);
-const myTickets = ref([]);
+const loadingEventId = ref(null)
+const myTickets = ref([])
+const successMessage = ref("")
+const errorMessage = ref("")
+
+const loadMyTickets = async () => {
+  try {
+    const res = await getMyTickets()
+    myTickets.value = res.data || res
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const hasTicket = (eventId) => {
+  return myTickets.value.some(t => t.event.eventId === eventId)
+}
 
 const loadData = async () => {
   try {
     events.value = await getEvents();
     myTickets.value = await getMyTickets();
+
+    console.log("EVENTS:", events.value); //  aquí
   } catch (error) {
     console.error(error);
   }
 };
 
-const registerToEvent = async (eventId) => {
+const handleRegister = async (eventId) => {
+  loadingEventId.value = eventId
+  successMessage.value = ""
+  errorMessage.value = ""
+
   try {
-    await api.post("/ticket/register", {
-      eventId: eventId
-    });
+    await registerTicket(eventId)
 
-    alert("Registro exitoso 🎉");
-    loadData();
+    successMessage.value = "Muy bien. Ticket registrado! Revisa tu correo"
+    await loadMyTickets()
+
   } catch (error) {
-    alert(error.response?.data?.message);
+    errorMessage.value =
+      error.response?.data?.message || "Error al registrar ticket"
+  } finally {
+    loadingEventId.value = null
   }
-};
+}
 
-onMounted(loadData);
+//onMounted(loadData);
+onMounted(() => {
+  loadData()
+  loadMyTickets()
+})
 </script>
 
 
@@ -84,6 +113,7 @@ onMounted(loadData);
       </div>
     </section>
 
+  
     <!-- Featured Events Section -->
     <section class="py-16 md:py-20">
       <div class="container mx-auto px-4 md:px-6">
@@ -120,7 +150,7 @@ onMounted(loadData);
         </span>
 
         <button
-          @click="registerToEvent(event.id)"
+          @click="handleRegister(event.id)"
           class="bg-[#C5A028] text-[#121212] px-5 py-2 rounded-lg font-semibold hover:bg-[#C5A028]/90 transition"
         >
           Registrarme
@@ -132,6 +162,19 @@ onMounted(loadData);
 </div>
 
       </div>
+
+        <!--<pre>{{ events[0] }}</pre>-->
+
+    <div v-if="successMessage"
+  class="bg-green-100 text-green-700 p-3 rounded mb-4">
+  {{ successMessage }}
+</div>
+
+<div v-if="errorMessage"
+  class="bg-red-100 text-red-700 p-3 rounded mb-4">
+  {{ errorMessage }}
+</div>
+
     </section>
 
     <!-- My Tickets Section -->

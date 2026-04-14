@@ -9,3 +9,11 @@ export const getMyTickets = async () => {
   const res = await api.get("/ticket/my-tickets");
   return res.data.data;
 };
+
+export const registerTicket = async (eventId) => {
+  const res = await api.post("/ticket/register", {
+    eventId
+  });
+
+  return res.data.data;
+};
