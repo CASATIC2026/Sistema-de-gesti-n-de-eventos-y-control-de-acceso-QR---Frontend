@@ -2,6 +2,7 @@
 import { ref, onMounted, onActivated } from "vue";
 import { getEvents } from "@/services/eventService";
 import { useRouter } from "vue-router";
+import api from "@/services/api";
 
 const router = useRouter();
 
@@ -14,6 +15,23 @@ const loadEvents = async () => {
     events.value = await getEvents();
   } catch (error) {
     console.error("Error al cargar eventos:", error);
+  }
+};
+
+const deleteEvent = async (eventId) => {
+  const confirmDelete = confirm("¿Segur@ q quieres desactivar este evento?");
+
+  if (!confirmDelete) return;
+
+  try {
+    await api.delete(`/event/${eventId}`);
+
+    // recargar lista
+    await loadEvents();
+
+  } catch (error) {
+    console.error("Error eliminando evento:", error);
+    alert("No se pudo eliminar el evento");
   }
 };
 
@@ -73,13 +91,19 @@ const goToTickets = (eventId) => {
         </div>
 
         <div class="mt-4 flex gap-2">
-          <button @click="goToTickets(event.id)" class="flex-1 bg-primary text-white py-1.5 rounded hover:opacity-90">
+          <button @click="goToTickets(event.id)" 
+          class="flex-1 bg-primary text-white py-1.5 rounded hover:opacity-90">
             Ver Tickets
           </button>
 
           <button @click="router.push(`/admin/events/edit/${event.id}`)"
-            class="border border-primary text-primary px-3 py-1 rounded">
+            class="flex-1 border border-primary text-primary px-3 py-1 rounded">
             Editar
+          </button>
+
+          <button @click="deleteEvent(event.id)"
+            class="flex-1 border border-red-600 text-red-600 py-1.5 rounded hover:bg-red-600 hover:text-white transition">
+            Eliminar
           </button>
 
         </div>

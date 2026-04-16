@@ -138,7 +138,7 @@ const logout = () => {
             <div class="flex items-center justify-between mb-8 pb-4 border-b border-[#333333]">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-[#C5A028] rounded-xl"></div>
-                <h2 class="text-xl font-bold font-['Manrope'] text-[#C5A028]">EventsAdmin</h2>
+                <h2 class="text-xl font-bold font-['Manrope'] text-[#C5A028]">QRventusAdmin</h2>
               </div>
               <button @click="mobileMenuOpen = false" class="text-[#F5F5F5]/60 hover:text-white">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,13 +162,13 @@ const logout = () => {
               >
                 <span class="font-['Work_Sans']">Eventos</span>
               </router-link>
-              <router-link 
+              <!--<router-link 
                 to="/admin/scanner" 
                 @click="mobileMenuOpen = false" 
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#F5F5F5]/70 hover:bg-[#333333] hover:text-[#C5A028] transition-all"
               >
                 <span class="font-['Work_Sans']">Escáner</span>
-              </router-link>
+              </router-link>-->
             </nav>
             
             <button 

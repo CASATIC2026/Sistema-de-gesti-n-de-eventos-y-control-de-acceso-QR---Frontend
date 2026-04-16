@@ -150,11 +150,25 @@ onMounted(() => {
         </span>
 
         <button
-          @click="handleRegister(event.id)"
-          class="bg-[#C5A028] text-[#121212] px-5 py-2 rounded-lg font-semibold hover:bg-[#C5A028]/90 transition"
-        >
-          Registrarme
-        </button>
+  @click="handleRegister(event.id)"
+  :disabled="loadingEventId === event.id || hasTicket(event.id)"
+  class="px-5 py-2 rounded-lg font-semibold transition shadow-md"
+  :class="hasTicket(event.id)
+    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+    : 'bg-[#C5A028] text-[#121212] hover:opacity-90'"
+>
+  <span v-if="loadingEventId === event.id">
+    Procesando...
+  </span>
+
+  <span v-else-if="hasTicket(event.id)">
+    Ya registrado
+  </span>
+
+  <span v-else>
+    Obtener Ticket
+  </span>
+</button>
       </div>
     </div>
 
