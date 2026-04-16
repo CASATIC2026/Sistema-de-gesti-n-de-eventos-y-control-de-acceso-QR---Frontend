@@ -120,7 +120,7 @@ onMounted(() => {
         
         <div class="flex justify-between items-center mb-10">
           <h3 class="text-2xl md:text-3xl font-bold font-['Manrope'] text-[#333333] border-l-4 border-[#C5A028] pl-4">
-            TICKETS DISPONIBLES
+            EVENTOS DISPONIBLES
           </h3>
           <span class="text-sm text-[#333333]/60 font-['Work_Sans']">Featured Events</span>
         </div>

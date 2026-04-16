@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onActivated } from "vue";
 import { getEvents } from "@/services/eventService";
 import { useRouter } from "vue-router";
 
@@ -17,6 +17,16 @@ const loadEvents = async () => {
   }
 };
 
+// Cargar eventos al montar el componente
+onMounted(() => {
+  loadEvents();
+});
+
+//este es cuando regresas a la vista
+onActivated(() => {
+  loadEvents();
+});
+
 // Función para ir a crear un evento
 const goToCreate = () => {
   router.push("/admin/events/create");
@@ -27,10 +37,6 @@ const goToTickets = (eventId) => {
   router.push(`/admin/tickets/${eventId}`);
 };
 
-// Cargar eventos al montar el componente
-onMounted(() => {
-  loadEvents();
-});
 </script>
 
 <template>
