@@ -2,52 +2,40 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(),
+
   routes: [
     {
       path: '/',
-      redirect: '/login'
-    },
-    {
-      path: '/login',
-      component: () => import('../views/LoginView.vue')
-    },
-    {
-      path: '/register',
-      component: () => import('../views/RegisterView.vue')
+      component: () => import('../views/UserHome.vue')
     },
 
     {
-      path: '/events',
-      component: () => import('../views/EventUserView.vue')
+      path: '/login',
+      component: () => import('../views/Login.vue')
     },
-    
+
     {
-      path: '/admin',
-      component: () => import('../components/layout/AdminLayout.vue'),
+      path: '/register',
+      component: () => import('../views/Register.vue')
+    },
+
+     {
+      path: '/scanner',
+      component: () => import('../views/ScannerView.vue'),
+    },
+
+    // Rutas admin
+    {
+      path: '/dashboard',
+          component: () => import('../views/Dashboard.vue'),
+
+      meta: { requiresAdmin: true },
+
       children: [
         {
-          path: 'dashboard',
-          component: () => import('../views/admin/Dashboard.vue')
-        },
-        {
-          path: 'events',
-          component: () => import('../views/admin/events/EventListView.vue')
-        },
-        {
-          path: 'events/create',
-          component: () => import('../views/admin/events/CreateEventView.vue')
-        },
-        {
-          path: 'events/edit/:id',
-          component: () => import('../views/admin/events/EventEditView.vue')
-        },
-        {
-          path: 'tickets/:eventId',
-          component: () => import('../views/admin/tickets/TicketListView.vue')
-        },
-        {
-          path: 'scanner',
-          component: () => import('../views/admin/scanner/ScannerView.vue')
+          
+           path: '/admin',
+      component: () => import('../components/layout/AdminLayout.vue')
         }
       ]
     }
@@ -55,21 +43,26 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token')
+  const role = localStorage.getItem('role')
 
   // rutas públicas
-  if (to.path === "/login" || to.path === "/register") {
-    return token ? "/admin/dashboard" : true;
+  if (to.path === '/login' || to.path === '/register') {
+    return token ? '/dashboard' : true
   }
 
-  // rutas privadas
-  if (!token) {
-    return "/login";
+  // proteger rutas admin
+  if (to.meta.requiresAdmin) {
+    if (!token) {
+      return '/login'
+    }
+
+    if (role !== 'Admin') {
+      return '/'
+    }
   }
 
-  return true;
-});
-
-
+  return true
+})
 
 export default router

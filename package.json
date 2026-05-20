@@ -4,20 +4,23 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
     "mock-server": "json-server --watch db.json --port 3001",
     "dev:mock": "npx concurrently \"npm run dev\" \"npm run mock-server\""
   },
   "dependencies": {
+    "apexcharts": "^5.12.0",
     "axios": "^1.13.5",
     "chart.js": "^4.5.1",
+    "html5-qrcode": "^2.3.8",
     "path": "^0.12.7",
     "pinia": "^3.0.4",
     "vue": "^3.5.25",
     "vue-chartjs": "^5.3.3",
-    "vue-router": "^5.0.3"
+    "vue-router": "^5.0.3",
+    "vue3-apexcharts": "^1.11.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.0",
@@ -27,7 +30,8 @@
     "json-server": "^1.0.0-beta.12",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vite-plugin-mkcert": "^2.0.0"
   },
   "description": "This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.",
   "main": "postcss.config.js",
