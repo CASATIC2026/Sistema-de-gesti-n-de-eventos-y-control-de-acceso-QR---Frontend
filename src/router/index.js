@@ -24,6 +24,7 @@ const router = createRouter({
       component: () => import('../views/ScannerView.vue'),
     },
 
+
     // Rutas admin
     {
       path: '/dashboard',

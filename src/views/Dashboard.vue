@@ -1,9 +1,230 @@
 <script setup>
+import { ref, computed, onMounted, watch } from "vue"
+import { useRouter } from "vue-router"
+import * as XLSX from "xlsx"
+import api from "../services/api"
+//import VueApexCharts from "vue3-apexcharts"
 
-import VueApexCharts from "vue3-apexcharts"
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import api from '../services/api'
+const getEventStatus = (evt) => {
+  const now = new Date()
+  const eventDate = new Date(evt.eventDate)
+
+  if (eventDate < now) {
+    return {
+      text: "Finalizado",
+      class: "text-error"
+    }
+  }
+
+  return {
+    text: "Activo",
+    class: "text-primary"
+  }
+}
+
+const searchQuery = ref("")
+
+const filteredEvents = computed(() => {
+  let filtered = events.value
+
+  // búsqueda
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+
+    filtered = filtered.filter(evt =>
+      evt.name.toLowerCase().includes(q) ||
+      evt.location?.toLowerCase().includes(q)
+    )
+  }
+
+  // filtros
+  if (filterStatus.value === "active") {
+    filtered = filtered.filter(evt =>
+      new Date(evt.eventDate) > new Date()
+    )
+  }
+
+  if (filterStatus.value === "finished") {
+    filtered = filtered.filter(evt =>
+      new Date(evt.eventDate) <= new Date()
+    )
+  }
+
+  return filtered
+})
+
+const filterStatus = ref("all")
+
+
+const selectedEvent = ref("all")
+
+watch(selectedEvent, async (newVal) => {
+  if (newVal === "all") {
+    await fetchEventsAndStats()
+    await fetchAllTickets()
+    return
+  }
+
+  await fetchEventStats(newVal)
+  await fetchEventTickets(newVal)
+})
+
+//función por evento (stats)
+const fetchEventStats = async (eventId) => {
+  try {
+    const res = await api.get(`/event/${eventId}/stats`)
+    const s = res.data.data
+
+    stats.value = {
+      capacity: s.capacity,
+      ticketsRegistered: s.ticketsRegistered,
+      checkedIn: s.checkedIn,
+      remaining: s.remaining
+    }
+
+    chartSeries.value = [
+      {
+        name: "Personas",
+        data: [
+          s.ticketsRegistered,
+          s.checkedIn,
+          s.remaining
+        ]
+      }
+    ]
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+
+//Función tickets por evento
+const fetchEventTickets = async (eventId) => {
+  try {
+    const res = await api.get(`/ticket/event/${eventId}`)
+
+    eventTickets.value =
+      res.data.data?.items ||
+      res.data.data?.Items ||
+      []
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+
+const events = ref([])
+//const tickets = ref([])
+
+const loadEvents = async () => {
+  try {
+    const res = await api.get("/event") // ojo: es /event, no /events
+
+    console.log("EVENTS =>", res.data.data)
+
+    events.value = res.data.data || []
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+onMounted(() => {
+  loadEvents()
+  fetchEventsAndStats()
+  fetchAllTickets()
+})
+
+
+const filteredTickets = computed(() => {
+  if (selectedEvent.value === "all") {
+    return allTickets.value
+  }
+
+  return eventTickets.value
+})
+
+
+
+ const exportEventSummaryToExcel = async () => {
+  const data = []
+
+  for (const evt of eventsList.value) {
+    try {
+      const res = await api.get(`/ticket/event/${evt.id}`)
+      const tickets = res.data.data?.items || res.data.data?.Items || []
+
+      const eventDate = new Date(evt.eventDate)
+
+      const registeredBefore = tickets.filter(t =>
+        new Date(t.createdAt) < eventDate
+      ).length
+
+      const registeredDay = tickets.filter(t =>
+        new Date(t.createdAt).toDateString() === eventDate.toDateString()
+      ).length
+
+      const checkedIn = tickets.filter(t => t.isUsed).length
+      const notCheckedIn = tickets.length - checkedIn
+
+      data.push({
+        Evento: evt.name,
+        Fecha: eventDate.toLocaleDateString(),
+        Capacidad: evt.maxCapacity,
+        Registrados: tickets.length,
+        "Antes del evento": registeredBefore,
+        "Día del evento": registeredDay,
+        "Usaron QR": checkedIn,
+        "No asistieron": notCheckedIn,
+        "Tasa asistencia": tickets.length
+          ? ((checkedIn / tickets.length) * 100).toFixed(1) + "%"
+          : "0%"
+      })
+
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(data)
+  const workbook = XLSX.utils.book_new()
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Resumen Eventos")
+
+  XLSX.writeFile(workbook, "resumen_eventos.xlsx")
+}
+
+
+
+
+const exportEventDetailToExcel = () => {
+  const data = allTickets.value.map(t => {
+    const event = eventsList.value.find(e => e.id === t.eventId)
+    const eventDate = event ? new Date(event.eventDate) : null
+
+    const registeredAt = new Date(t.createdAt)
+
+    return {
+      Email: t.userEmail,
+      Evento: event?.name || "N/A",
+      FechaEvento: eventDate ? eventDate.toLocaleDateString() : "N/A",
+      FechaRegistro: registeredAt.toLocaleString(),
+      "Registrado antes del evento": eventDate
+        ? registeredAt < eventDate
+        : false,
+      "Usó QR": t.isUsed ? "Sí" : "No"
+    }
+  })
+
+  const worksheet = XLSX.utils.json_to_sheet(data)
+  const workbook = XLSX.utils.book_new()
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Detalle Usuarios")
+
+  XLSX.writeFile(workbook, "detalle_usuarios.xlsx")
+}
+
+
+
 const router = useRouter()
 const stats = ref({
   capacity: 0,
@@ -40,47 +261,47 @@ const chartSeries = ref([
 const eventsList = ref([])
 const allTickets = ref([])
 const fetchEventsAndStats = async () => {
-  
+
   try {
     const eventsResponse = await api.get('/event')
     eventsList.value = eventsResponse.data.data || []
 
-if (eventsList.value.length > 0) {
-  let totalCapacity = 0
-  let totalTickets = 0
-  let totalChecked = 0
+    if (eventsList.value.length > 0) {
+      let totalCapacity = 0
+      let totalTickets = 0
+      let totalChecked = 0
 
-  for (const evt of eventsList.value) {
-    try {
-      const res = await api.get(`/event/${evt.id}/stats`)
-      const s = res.data.data
+      for (const evt of eventsList.value) {
+        try {
+          const res = await api.get(`/event/${evt.id}/stats`)
+          const s = res.data.data
 
-      totalCapacity += s.capacity || 0
-      totalTickets += s.ticketsRegistered || 0
-      totalChecked += s.checkedIn || 0
-    } catch (err) {
-      console.error(`Error en evento ${evt.id}`, err)
-    }
-  }
+          totalCapacity += s.capacity || 0
+          totalTickets += s.ticketsRegistered || 0
+          totalChecked += s.checkedIn || 0
+        } catch (err) {
+          console.error(`Error en evento ${evt.id}`, err)
+        }
+      }
 
-  stats.value = {
-    capacity: totalCapacity,
-    ticketsRegistered: totalTickets,
-    checkedIn: totalChecked,
-    remaining: totalCapacity - totalChecked
-  }
+      stats.value = {
+        capacity: totalCapacity,
+        ticketsRegistered: totalTickets,
+        checkedIn: totalChecked,
+        remaining: totalCapacity - totalChecked
+      }
 
-  chartSeries.value = [
-    {
-      name: 'Personas',
-      data: [
-        totalTickets,
-        totalChecked,
-        totalCapacity - totalChecked
+      chartSeries.value = [
+        {
+          name: 'Personas',
+          data: [
+            totalTickets,
+            totalChecked,
+            totalCapacity - totalChecked
+          ]
+        }
       ]
     }
-  ]
-}
   } catch (error) {
     if (error.response && error.response.status === 401) {
       router.push('/login')
@@ -217,20 +438,7 @@ const closeTicketsModal = () => {
   isTicketsModalOpen.value = false
   eventTickets.value = []
 }
-// const openCreateModal = () => {
-//   isEditing.value = false
-//   editingEventId.value = null
-//   eventForm.value = {
-//     name: '',
-//     eventDate: '',
-//     location: '',
-//     description: '',
-//     maxCapacity: null,
-//     imageUrl: '',
-//     isActive: true
-//   }
-//   isModalOpen.value = true
-// }
+
 const deleteEvent = async (id) => {
   if (confirm("Are you sure you want to disable/delete this event?")) {
     try {
@@ -260,10 +468,7 @@ const logout = () => {
   localStorage.removeItem('token')
   router.push('/login')
 }
-onMounted(() => {
-  fetchEventsAndStats()
-  fetchAllTickets()
-})
+
 </script>
 
 <template>
@@ -357,7 +562,7 @@ onMounted(() => {
         </div>
         <div class="hidden sm:flex items-center gap-6">
           <div class="text-right">
-            <p class="font-headline font-bold text-on-surface">Eileen</p>
+            <p class="font-headline font-bold text-on-surface">Eileen Dimas</p>
           </div>
           <div class="h-12 w-12 lg:h-14 lg:w-14 rounded-full bg-surface-container-highest overflow-hidden">
             <img alt="Admin Avatar" class="w-full h-full object-cover"
@@ -377,14 +582,17 @@ onMounted(() => {
             <div class="relative w-full sm:w-auto">
               <span
                 class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-lg">search</span>
-              <input
+              <input v-model="searchQuery"
                 class="pl-10 pr-4 py-2 bg-surface-container-lowest border-none rounded-lg text-sm font-body w-full sm:w-64 focus:ring-1 focus:ring-primary"
                 placeholder="Buscar eventos..." type="text" />
             </div>
-            <button
-              class="w-full sm:w-auto justify-center bg-surface-container-lowest px-4 py-2 rounded-lg text-xs font-label uppercase tracking-widest text-on-surface hover:bg-white transition-colors flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">filter_list</span> Filtros
-            </button>
+            <select v-model="filterStatus"
+              class="w-full sm:w-auto bg-surface-container-lowest px-4 py-2 rounded-lg text-xs font-label uppercase tracking-widest text-on-surface hover:bg-white transition-colors focus:ring-1 focus:ring-primary">
+
+              <option value="all">Todos</option>
+              <option value="active">Disponibles</option>
+              <option value="finished">Finalizados</option>
+            </select>
           </div>
         </div>
         <!-- Table -->
@@ -411,7 +619,7 @@ onMounted(() => {
             </thead>
             <tbody class="divide-y-0 min-w-max">
               <!-- Event Rows from DB -->
-              <tr v-for="evt in eventsList" :key="evt.id"
+              <tr v-for="evt in filteredEvents" :key="evt.id"
                 class="group hover:bg-surface-container-lowest transition-colors border-none">
                 <td class="px-4 sm:px-8 py-6">
                   <div class="flex items-center gap-4">
@@ -430,8 +638,9 @@ onMounted(() => {
                   <span class="text-sm font-body text-on-surface">Max: {{ evt.maxCapacity }}</span>
                 </td>
                 <td class="px-4 sm:px-8 py-6 font-headline font-bold text-center whitespace-nowrap">
-                  <span :class="evt.isActive ? 'text-primary' : 'text-error'">{{ evt.isActive ? 'Activo' : 'Inactivo'
-                  }}</span>
+                  <span :class="getEventStatus(evt).class">
+                    {{ getEventStatus(evt).text }}
+                  </span>
                 </td>
                 <td class="px-4 sm:px-8 py-6 text-right whitespace-nowrap">
                   <div class="flex justify-end items-center gap-2 lg:group-hover:opacity-100 transition-opacity">
@@ -478,198 +687,214 @@ onMounted(() => {
           </div>
         </div>
       </section>
+      <!-- ATTENDEES SECTION -->
+      <section v-if="currentSection === 'users'" class="space-y-6">
 
-      <!-- USERS SECTION -->
-<section 
-  v-if="currentSection === 'users'"
-  class="bg-surface-container-low rounded-xl p-8"
->
-  <div class="flex items-center justify-between mb-8">
-    <div>
-      <h3 class="text-2xl font-headline font-bold text-on-surface">
-        Usuarios Registrados
-      </h3>
-      <p class="text-secondary text-sm">
-        Usuarios que compraron entradas
-      </p>
-    </div>
+        <!-- HEADER -->
+        <div class="flex items-center justify-between">
 
-    <div class="bg-primary/10 text-primary px-4 py-2 rounded-xl text-sm font-semibold">
-      {{ allTickets.length }} usuarios
-    </div>
-  </div>
+          <div>
+            <h3 class="text-2xl font-bold">
+              Asistentes por Evento
+            </h3>
 
-  <div class="overflow-x-auto">
-    <table class="w-full">
-      <thead>
-        <tr class="border-b border-outline-variant/20">
-          <th class="text-left py-4 text-secondary text-xs uppercase">Correo</th>
-          <th class="text-center py-4 text-secondary text-xs uppercase">Estado</th>
-        </tr>
-      </thead>
+            <p class="text-secondary text-sm">
+              Control de registros y asistencia
+            </p>
+          </div>
 
-      <tbody>
-        <tr 
-          v-for="ticket in allTickets"
-          :key="ticket.id"
-          class="border-b border-outline-variant/10"
-        >
-          <td class="py-4">
-            {{ ticket.userEmail || ticket.UserEmail }}
-          </td>
+          <!-- EXPORT BUTTON -->
+          <div class="flex gap-2">
+  <button @click="exportEventSummaryToExcel"
+    class="px-4 py-2 text-xs uppercase bg-primary text-white rounded-lg">
+    Exportar resumen
+  </button>
 
-          <td class="text-center">
-            <span 
-              v-if="ticket.isUsed || ticket.IsUsed"
-              class="text-primary font-semibold"
-            >
-              Ingresó
-            </span>
+  <button @click="exportEventDetailToExcel"
+    class="px-4 py-2 text-xs uppercase bg-surface-container-high rounded-lg">
+    Exportar detalle
+  </button>
+</div>
 
-            <span 
-              v-else
-              class="text-secondary"
-            >
-              Pendiente
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
+        </div>
+
+        <!-- FILTER -->
+        <div>
+          <select v-model="selectedEvent" class="p-2 rounded bg-surface-container-low">
+            <option value="all">Todos los eventos</option>
+
+            <option v-for="evt in filteredEvents" :key="evt.id" :value="evt.id">
+              {{ evt.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- TABLE -->
+        <div class="overflow-x-auto bg-surface-container-low rounded-xl">
+
+          <table class="w-full">
+
+            <thead>
+              <tr class="border-b">
+                <th class="text-left p-4">Correo</th>
+                <th class="text-center p-4">Evento</th>
+                <th class="text-center p-4">Estado</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              <tr v-for="ticket in filteredTickets" :key="ticket.id" class="border-b">
+
+                <td class="p-4">
+                  {{ ticket.userEmail }}
+                </td>
+
+                <td class="text-center p-4">
+                  {{ ticket.eventName }}
+                </td>
+
+                <td class="text-center p-4">
+
+                  <span v-if="ticket.isUsed" class="text-green-500 font-semibold">
+                    Ingresó
+                  </span>
+
+                  <span v-else class="text-yellow-500">
+                    Pendiente
+                  </span>
+
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+      <!-- ANALYTICS SECTION -->
+      <section v-if="currentSection === 'analytics'" class="space-y-8">
+        <div>
+          <h2 class="text-3xl font-bold font-headline">
+            Analíticas
+          </h2>
+
+          <p class="text-secondary mt-2">
+            Estadísticas en tiempo real
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Card -->
+          <div class="bg-surface-container-low rounded-2xl p-6">
+            <p class="text-secondary text-sm mb-2">
+              Tickets Registrados
+            </p>
+
+            <h2 class="text-5xl font-bold text-primary">
+              {{ stats.ticketsRegistered }}
+            </h2>
+          </div>
+
+          <!-- Card -->
+          <div class="bg-surface-container-low rounded-2xl p-6">
+            <p class="text-secondary text-sm mb-2">
+              Personas Ingresadas
+            </p>
+
+            <h2 class="text-5xl font-bold text-green-500">
+              {{ stats.checkedIn }}
+            </h2>
+          </div>
+
+          <!-- Card -->
+          <div class="bg-surface-container-low rounded-2xl p-6">
+            <p class="text-secondary text-sm mb-2">
+              Espacios Disponibles
+            </p>
+
+            <h2 class="text-5xl font-bold text-yellow-500">
+              {{ stats.remaining }}
+            </h2>
+          </div>
+
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-surface-container-low rounded-2xl p-6">
+          <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries" />
+        </div>
+      </section>
 
 
-<!-- ANALYTICS SECTION -->
-<section 
-  v-if="currentSection === 'analytics'"
-  class="space-y-8"
->
-  <div>
-    <h2 class="text-3xl font-bold font-headline">
-      Analíticas
-    </h2>
+      <!-- SETTINGS SECTION -->
+      <section v-if="currentSection === 'settings'" class="bg-surface-container-low rounded-2xl p-8 space-y-8">
+        <div>
+          <h3 class="text-2xl font-bold font-headline mb-2">
+            Configuración
+          </h3>
 
-    <p class="text-secondary mt-2">
-      Estadísticas en tiempo real
-    </p>
-  </div>
+          <p class="text-secondary">
+            Personaliza tu dashboard
+          </p>
+        </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Theme -->
+        <div class="flex items-center justify-between border-b border-outline-variant/10 pb-6">
+          <div>
+            <h4 class="font-semibold text-on-surface">
+              Tema Oscuro
+            </h4>
 
-    <!-- Card -->
-    <div class="bg-surface-container-low rounded-2xl p-6">
-      <p class="text-secondary text-sm mb-2">
-        Tickets Registrados
-      </p>
+            <p class="text-secondary text-sm">
+              Cambiar entre modo claro y oscuro
+            </p>
+          </div>
 
-      <h2 class="text-5xl font-bold text-primary">
-        {{ stats.ticketsRegistered }}
-      </h2>
-    </div>
+          <button class="gold-gradient text-white px-5 py-2 rounded-xl">
+            Próximamente
+          </button>
+        </div>
 
-    <!-- Card -->
-    <div class="bg-surface-container-low rounded-2xl p-6">
-      <p class="text-secondary text-sm mb-2">
-        Personas Ingresadas
-      </p>
+        <!-- Scanner -->
+        <div class="flex items-center justify-between border-b border-outline-variant/10 pb-6">
+          <div>
+            <h4 class="font-semibold text-on-surface">
+              Escáner QR
+            </h4>
 
-      <h2 class="text-5xl font-bold text-green-500">
-        {{ stats.checkedIn }}
-      </h2>
-    </div>
+            <p class="text-secondary text-sm">
+              Abrir web app del scanner
+            </p>
+          </div>
 
-    <!-- Card -->
-    <div class="bg-surface-container-low rounded-2xl p-6">
-      <p class="text-secondary text-sm mb-2">
-        Espacios Disponibles
-      </p>
+          <button class="bg-primary text-white px-5 py-2 rounded-xl">
+            Abrir Scanner
+          </button>
+        </div>
 
-      <h2 class="text-5xl font-bold text-yellow-500">
-        {{ stats.remaining }}
-      </h2>
-    </div>
+        <!-- Notifications -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="font-semibold text-on-surface">
+              Notificaciones
+            </h4>
 
-  </div>
+            <p class="text-secondary text-sm">
+              Correos y alertas automáticas
+            </p>
+          </div>
 
-  <!-- Chart -->
-  <div class="bg-surface-container-low rounded-2xl p-6">
-    <apexchart
-      type="bar"
-      height="350"
-      :options="chartOptions"
-      :series="chartSeries"
-    />
-  </div>
-</section>
-
-
-<!-- SETTINGS SECTION -->
-<section 
-  v-if="currentSection === 'settings'"
-  class="bg-surface-container-low rounded-2xl p-8 space-y-8"
->
-  <div>
-    <h3 class="text-2xl font-bold font-headline mb-2">
-      Configuración
-    </h3>
-
-    <p class="text-secondary">
-      Personaliza tu dashboard
-    </p>
-  </div>
-
-  <!-- Theme -->
-  <div class="flex items-center justify-between border-b border-outline-variant/10 pb-6">
-    <div>
-      <h4 class="font-semibold text-on-surface">
-        Tema Oscuro
-      </h4>
-
-      <p class="text-secondary text-sm">
-        Cambiar entre modo claro y oscuro
-      </p>
-    </div>
-
-    <button class="gold-gradient text-white px-5 py-2 rounded-xl">
-      Próximamente
-    </button>
-  </div>
-
-  <!-- Scanner -->
-  <div class="flex items-center justify-between border-b border-outline-variant/10 pb-6">
-    <div>
-      <h4 class="font-semibold text-on-surface">
-        Escáner QR
-      </h4>
-
-      <p class="text-secondary text-sm">
-        Abrir web app del scanner
-      </p>
-    </div>
-
-    <button class="bg-primary text-white px-5 py-2 rounded-xl">
-      Abrir Scanner
-    </button>
-  </div>
-
-  <!-- Notifications -->
-  <div class="flex items-center justify-between">
-    <div>
-      <h4 class="font-semibold text-on-surface">
-        Notificaciones
-      </h4>
-
-      <p class="text-secondary text-sm">
-        Correos y alertas automáticas
-      </p>
-    </div>
-
-    <button class="bg-surface-container-high px-5 py-2 rounded-xl">
-      Activadas
-    </button>
-  </div>
-</section>
+          <button class="bg-surface-container-high px-5 py-2 rounded-xl">
+            Activadas
+          </button>
+        </div>
+      </section>
 
 
       <!-- Tickets/Users Modal -->
