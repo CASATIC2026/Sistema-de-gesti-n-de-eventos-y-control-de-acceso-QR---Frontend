@@ -97,7 +97,12 @@ const handleLogin = async () => {
             <div class="group">
               <div class="flex justify-between items-end mb-1">
                 <label class="block font-label text-[11px] font-semibold uppercase tracking-wider text-secondary group-focus-within:text-primary transition-colors" for="password">Contraseña</label>
-                <a class="text-[11px] font-semibold text-primary hover:underline underline-offset-4 transition-all" href="#">¿Olvidaste tu contraseña?</a>
+               <router-link 
+  class="text-[11px] font-semibold text-primary hover:underline underline-offset-4 transition-all"
+  to="/forgot-password"
+>
+  ¿Olvidaste tu contraseña?
+</router-link>
               </div>
               <input 
                 v-model="password" 

@@ -53,6 +53,7 @@ const handleLogin = async () => {
 }
 </script>
 <template>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <div class="min-h-screen flex items-center justify-center relative p-6 bg-[#313030] font-body text-on-surface overflow-hidden">
     <!-- Back to Home Button -->
     <router-link to="/" class="absolute top-6 left-6 md:top-10 md:left-10 z-50 flex items-center gap-2 text-white hover:text-white/80 transition-colors group">
@@ -70,7 +71,7 @@ const handleLogin = async () => {
         <!-- Branding Header -->
         <div class="pt-12 pb-8 px-10 text-center">
           <h1 class="font-headline font-bold text-3xl tracking-tighter text-on-surface mb-2">QRVentus</h1>
-          <p class="font-label uppercase tracking-[0.1rem] text-[10px] text-secondary">Iniciar Sesión</p>
+          <p class="font-label uppercase tracking-[0.1rem] text-[10px] text-secondary">Registrarme</p>
         </div>
         <!-- Form Section -->
         <div class="px-10 pb-12">
@@ -86,7 +87,7 @@ const handleLogin = async () => {
                 class="w-full bg-white border border-gray-200 rounded-lg py-4 px-4 text-black focus:outline-none focus:ring-2 focus:ring-primary-container focus:bg-white transition-all placeholder:text-gray-400" 
                 id="email" 
                 name="email" 
-                placeholder="nombre@ejemplo.com" 
+                placeholder="name@gmail.com" 
                 required 
                 type="email" 
                 :disabled="isLoading"
@@ -96,13 +97,14 @@ const handleLogin = async () => {
             <div class="group">
               <div class="flex justify-between items-end mb-1">
                 <label class="block font-label text-[11px] font-semibold uppercase tracking-wider text-secondary group-focus-within:text-primary transition-colors" for="password">Contraseña</label>
-                <a class="text-[11px] font-semibold text-primary hover:underline underline-offset-4 transition-all" href="#">¿Olvidaste tu contraseña?</a>
+                <!--<a class="text-[11px] font-semibold text-primary hover:underline underline-offset-4 transition-all" href="#">¿Olvidaste tu contraseña?</a>-->
               </div>
               <input 
                 v-model="password" 
                 class="w-full bg-white border border-gray-200 rounded-lg py-4 px-4 text-black focus:outline-none focus:ring-2 focus:ring-primary-container focus:bg-white transition-all" 
                 id="password" 
                 name="password" 
+                placeholder="*************" 
                 required 
                 type="password" 
                 :disabled="isLoading"
@@ -115,7 +117,7 @@ const handleLogin = async () => {
               type="submit"
             >
               <span v-if="isLoading">Verificando...</span>
-              <span v-else>Iniciar sesión</span>
+              <span v-else>Registrarme</span>
             </button>
           </form>
           <!-- Divider -->
@@ -126,11 +128,11 @@ const handleLogin = async () => {
           </div>
         </div>
         <!-- Footer Info -->
-        <div class="bg-gray-50 py-4 px-10 flex justify-center items-center">
+        <!--<div class="bg-gray-50 py-4 px-10 flex justify-center items-center">
           <p class="font-body text-xs text-secondary">
             ¿No tienes una cuenta? <router-link class="text-primary font-semibold hover:underline underline-offset-4" to="/register">Registrarse</router-link>
           </p>
-        </div>
+        </div>-->
       </div>
       <!-- Global Footer -->
       <footer class="mt-8 text-center space-y-4">

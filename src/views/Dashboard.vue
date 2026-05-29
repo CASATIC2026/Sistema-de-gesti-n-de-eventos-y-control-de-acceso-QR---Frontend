@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from "vue"
 import { useRouter } from "vue-router"
 import * as XLSX from "xlsx"
 import api from "../services/api"
+import AttendancePanel from "../views/AttendancePanel.vue"
 //import VueApexCharts from "vue3-apexcharts"
 
 const getEventStatus = (evt) => {
@@ -145,7 +146,7 @@ const filteredTickets = computed(() => {
 
 
 
- const exportEventSummaryToExcel = async () => {
+const exportEventSummaryToExcel = async () => {
   const data = []
 
   for (const evt of eventsList.value) {
@@ -483,15 +484,18 @@ const logout = () => {
       'h-screen w-64 fixed left-0 top-0 bg-[#f6f3f2] flex flex-col py-8 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0',
       isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
     ]">
+  
       <div class="px-8 mt-2 lg:mt-0 mb-12 flex justify-between items-center">
         <div>
           <h1 class="font-headline font-bold text-[#1c1b1b] text-xl tracking-tighter">Dashboard</h1>
           <p class="font-headline uppercase tracking-[0.05rem] text-[10px] text-secondary mt-1">Gestión de Eventos</p>
         </div>
+        
         <button @click="isMobileMenuOpen = false" class="lg:hidden text-secondary hover:text-error transition-colors">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
+      
       <nav class="flex-1 space-y-2">
         <a @click="currentSection = 'events'" :class="currentSection === 'events'
           ? 'bg-[#ffffff] text-[#745b00] shadow-sm'
@@ -500,13 +504,14 @@ const logout = () => {
           <span class="material-symbols-outlined">calendar_today</span>
           <span class="font-headline uppercase tracking-[0.05rem] text-xs font-semibold">Eventos</span>
         </a>
-        <a @click="currentSection = 'users'" :class="currentSection === 'users'
+        <!--<a @click="currentSection = 'users'" :class="currentSection === 'users'
           ? 'bg-[#ffffff] text-[#745b00] shadow-sm'
           : 'text-[#656464] hover:bg-[#ebe7e7]'"
           class="rounded-l-xl ml-4 pl-4 py-3 flex items-center gap-3 transition-all duration-200 cursor-pointer">
           <span class="material-symbols-outlined">group</span>
           <span class="font-headline uppercase tracking-[0.05rem] text-xs">Usuarios</span>
-        </a>
+        </a>-->
+        
         <a @click="currentSection = 'analytics'" :class="currentSection === 'analytics'
           ? 'bg-[#ffffff] text-[#745b00] shadow-sm'
           : 'text-[#656464] hover:bg-[#ebe7e7]'"
@@ -541,26 +546,26 @@ const logout = () => {
     </aside>
     <!-- Main Content Canvas -->
     <main
-      class="flex-1 w-full lg:ml-64 p-4 sm:p-8 lg:p-12 lg:max-w-[calc(100%-16rem)] 2xl:max-w-[1600px] bg-surface min-h-screen overflow-x-hidden">
+      class="flex-1 w-full lg:ml-64 p-3 sm:p-6 lg:p-6 lg:max-w-[calc(100%-16rem)] 2xl:max-w-[1600px] bg-surface min-h-screen overflow-x-hidden">
       <!-- Header Section -->
-      <header class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 mb-8 lg:mb-16">
+       
+      <header class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-0 mb-8 lg:mb-16">
         <div class="w-full flex items-center justify-between sm:justify-start gap-4">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1">
             <button @click="isMobileMenuOpen = true"
               class="lg:hidden p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors flex items-center justify-center">
               <span class="material-symbols-outlined">menu</span>
             </button>
-            <h2 class="text-2xl sm:text-3xl lg:text-5xl font-bold font-headline tracking-tight text-on-surface">Listado
-              de Eventos</h2>
+            
           </div>
-          <div class="flex items-center gap-4 sm:hidden">
-            <div class="h-10 w-10 rounded-full bg-surface-container-highest overflow-hidden">
+          <div class="flex items-center gap-2 sm:hidden">
+            <div class="h8- w-10 rounded-full bg-surface-container-highest overflow-hidden">
               <img alt="Admin Avatar" class="w-full h-full object-cover"
                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDPF3wRBl-HWLIlVrrDH0raZMn-uXXlNp7Tw&s" />
             </div>
           </div>
         </div>
-        <div class="hidden sm:flex items-center gap-6">
+        <div class="hidden sm:flex items-center gap-3">
           <div class="text-right">
             <p class="font-headline font-bold text-on-surface">Eileen Dimas</p>
           </div>
@@ -575,8 +580,10 @@ const logout = () => {
       <!-- Main CRUD Table Section -->
       <!-- EVENTS SECTION -->
       <section v-if="currentSection === 'events'" class="bg-surface-container-low rounded-xl overflow-hidden">
+        <h2 class="text-2xl sm:text-3xl lg:text-5xl font-bold font-headline tracking-tight text-on-surface">Listado
+              de Eventos</h2>
         <div
-          class="p-4 lg:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-container-high/30">
+          class="p-4 lg:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-surface-container-high/30">
           <h3 class="text-xl font-headline font-bold text-on-surface">Eventos</h3>
           <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <div class="relative w-full sm:w-auto">
@@ -687,150 +694,21 @@ const logout = () => {
           </div>
         </div>
       </section>
-      <!-- ATTENDEES SECTION -->
-      <section v-if="currentSection === 'users'" class="space-y-6">
 
-        <!-- HEADER -->
-        <div class="flex items-center justify-between">
 
-          <div>
-            <h3 class="text-2xl font-bold">
-              Asistentes por Evento
-            </h3>
-
-            <p class="text-secondary text-sm">
-              Control de registros y asistencia
-            </p>
-          </div>
-
-          <!-- EXPORT BUTTON -->
-          <div class="flex gap-2">
-  <button @click="exportEventSummaryToExcel"
-    class="px-4 py-2 text-xs uppercase bg-primary text-white rounded-lg">
-    Exportar resumen
-  </button>
-
-  <button @click="exportEventDetailToExcel"
-    class="px-4 py-2 text-xs uppercase bg-surface-container-high rounded-lg">
-    Exportar detalle
-  </button>
-</div>
-
-        </div>
-
-        <!-- FILTER -->
-        <div>
-          <select v-model="selectedEvent" class="p-2 rounded bg-surface-container-low">
-            <option value="all">Todos los eventos</option>
-
-            <option v-for="evt in filteredEvents" :key="evt.id" :value="evt.id">
-              {{ evt.name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- TABLE -->
-        <div class="overflow-x-auto bg-surface-container-low rounded-xl">
-
-          <table class="w-full">
-
-            <thead>
-              <tr class="border-b">
-                <th class="text-left p-4">Correo</th>
-                <th class="text-center p-4">Evento</th>
-                <th class="text-center p-4">Estado</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              <tr v-for="ticket in filteredTickets" :key="ticket.id" class="border-b">
-
-                <td class="p-4">
-                  {{ ticket.userEmail }}
-                </td>
-
-                <td class="text-center p-4">
-                  {{ ticket.eventName }}
-                </td>
-
-                <td class="text-center p-4">
-
-                  <span v-if="ticket.isUsed" class="text-green-500 font-semibold">
-                    Ingresó
-                  </span>
-
-                  <span v-else class="text-yellow-500">
-                    Pendiente
-                  </span>
-
-                </td>
-
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </section>
-
-      <!-- ANALYTICS SECTION -->
-      <section v-if="currentSection === 'analytics'" class="space-y-8">
-        <div>
-          <h2 class="text-3xl font-bold font-headline">
-            Analíticas
-          </h2>
-
-          <p class="text-secondary mt-2">
-            Estadísticas en tiempo real
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          <!-- Card -->
-          <div class="bg-surface-container-low rounded-2xl p-6">
-            <p class="text-secondary text-sm mb-2">
-              Tickets Registrados
-            </p>
-
-            <h2 class="text-5xl font-bold text-primary">
-              {{ stats.ticketsRegistered }}
-            </h2>
-          </div>
-
-          <!-- Card -->
-          <div class="bg-surface-container-low rounded-2xl p-6">
-            <p class="text-secondary text-sm mb-2">
-              Personas Ingresadas
-            </p>
-
-            <h2 class="text-5xl font-bold text-green-500">
-              {{ stats.checkedIn }}
-            </h2>
-          </div>
-
-          <!-- Card -->
-          <div class="bg-surface-container-low rounded-2xl p-6">
-            <p class="text-secondary text-sm mb-2">
-              Espacios Disponibles
-            </p>
-
-            <h2 class="text-5xl font-bold text-yellow-500">
-              {{ stats.remaining }}
-            </h2>
-          </div>
-
-        </div>
-
-        <!-- Chart -->
-        <div class="bg-surface-container-low rounded-2xl p-6">
-          <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries" />
-        </div>
-      </section>
-
+      <!----------------------------------------------->
+<AttendancePanel
+  v-show="currentSection === 'analytics'"
+  v-model:selectedEvent="selectedEvent"
+  :filteredEvents="filteredEvents"
+  :filteredTickets="filteredTickets"
+  :stats="stats"
+  :chartOptions="chartOptions"
+  :chartSeries="chartSeries"
+  :exportEventSummaryToExcel="exportEventSummaryToExcel"
+  :exportEventDetailToExcel="exportEventDetailToExcel"
+/>
+      <!----------------------------------------------->
 
       <!-- SETTINGS SECTION -->
       <section v-if="currentSection === 'settings'" class="bg-surface-container-low rounded-2xl p-8 space-y-8">
