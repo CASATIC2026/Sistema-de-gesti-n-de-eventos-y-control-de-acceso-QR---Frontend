@@ -4,23 +4,21 @@ import { useRouter } from "vue-router"
 import * as XLSX from "xlsx"
 import api from "../services/api"
 import AttendancePanel from "../views/AttendancePanel.vue"
+import { useToast } from "../composables/useToast"
+
+const { showToast } = useToast()
+
 //import VueApexCharts from "vue3-apexcharts"
 
 const getEventStatus = (evt) => {
   const now = new Date()
-  const eventDate = new Date(evt.eventDate)
 
-  if (eventDate < now) {
-    return {
-      text: "Finalizado",
-      class: "text-error"
-    }
-  }
+  const start = new Date(evt.startDateTime)
+  const end = new Date(evt.endDateTime)
 
-  return {
-    text: "Activo",
-    class: "text-primary"
-  }
+  if (now < start) return { text: "Próximo", class: "text-blue-500" }
+  if (now <= end) return { text: "En curso", class: "text-green-500" }
+  return { text: "Finalizado", class: "text-gray-400" }
 }
 
 const searchQuery = ref("")
@@ -41,13 +39,13 @@ const filteredEvents = computed(() => {
   // filtros
   if (filterStatus.value === "active") {
     filtered = filtered.filter(evt =>
-      new Date(evt.eventDate) > new Date()
+      new Date(evt.endDateTime) > new Date()
     )
   }
 
   if (filterStatus.value === "finished") {
     filtered = filtered.filter(evt =>
-      new Date(evt.eventDate) <= new Date()
+      new Date(evt.endDateTime) <= new Date()
     )
   }
 
@@ -154,15 +152,17 @@ const exportEventSummaryToExcel = async () => {
       const res = await api.get(`/ticket/event/${evt.id}`)
       const tickets = res.data.data?.items || res.data.data?.Items || []
 
-      const eventDate = new Date(evt.eventDate)
+      //const eventDate = new Date(evt.eventDate)
+      const startDate = new Date(evt.startDateTime)
 
       const registeredBefore = tickets.filter(t =>
-        new Date(t.createdAt) < eventDate
+        //new Date(t.createdAt) < eventDate
+        new Date(t.createdAt) < startDate
       ).length
 
       const registeredDay = tickets.filter(t =>
-        new Date(t.createdAt).toDateString() === eventDate.toDateString()
-      ).length
+        new Date(t.createdAt).toDateString() === startDate.toDateString()
+      )
 
       const checkedIn = tickets.filter(t => t.isUsed).length
       const notCheckedIn = tickets.length - checkedIn
@@ -200,17 +200,23 @@ const exportEventSummaryToExcel = async () => {
 const exportEventDetailToExcel = () => {
   const data = allTickets.value.map(t => {
     const event = eventsList.value.find(e => e.id === t.eventId)
-    const eventDate = event ? new Date(event.eventDate) : null
+    //const eventDate = event ? new Date(event.eventDate) : null
+    const startDate = event
+      ? new Date(event.startDateTime)
+      : null
 
     const registeredAt = new Date(t.createdAt)
 
     return {
       Email: t.userEmail,
       Evento: event?.name || "N/A",
-      FechaEvento: eventDate ? eventDate.toLocaleDateString() : "N/A",
+      //FechaEvento: eventDate ? eventDate.toLocaleDateString() : "N/A",
+      FechaEvento: startDate
+        ? startDate.toLocaleString()
+        : "N/A",
       FechaRegistro: registeredAt.toLocaleString(),
-      "Registrado antes del evento": eventDate
-        ? registeredAt < eventDate
+      "Registrado antes del evento": startDate
+        ? registeredAt < startDate
         : false,
       "Usó QR": t.isUsed ? "Sí" : "No"
     }
@@ -342,40 +348,63 @@ const isMobileMenuOpen = ref(false)
 const currentSection = ref('events')
 const eventForm = ref({
   name: '',
-  eventDate: '',
+  startDateTime: '',
+  endDateTime: '',
   location: '',
   description: '',
   maxCapacity: null,
   imageUrl: '',
   isActive: true
 })
+
+const normalizeDate = (value) => {
+  if (!value) return null
+
+  const date = new Date(value)
+return date.toISOString()
+//return new Date(value).toISOString()
+   
+}
+
 const submitEvent = async () => {
   try {
+   if (!eventForm.value.startDateTime || !eventForm.value.endDateTime) {
+      showToast("Debes completar las fechas", "error")
+      return
+    }
+
     const payload = {
       name: eventForm.value.name,
       description: eventForm.value.description,
-      eventDate: eventForm.value.eventDate,
+      startDateTime: normalizeDate(eventForm.value.startDateTime),
+      endDateTime: normalizeDate(eventForm.value.endDateTime),
       maxCapacity: eventForm.value.maxCapacity,
       location: eventForm.value.location,
       imageUrl: eventForm.value.imageUrl,
       isActive: eventForm.value.isActive !== undefined ? eventForm.value.isActive : true
     }
+    console.log("PAYLOAD FINAL:", payload)
+
     if (isEditing.value) {
       await api.put(`/event/${editingEventId.value}`, payload)
-      alert('Evento actualizado exitosamente!')
+      showToast("Evento creado exitosamente!", "success")
     } else {
       await api.post('/event', payload)
-      alert('Evento creado exitosamente!')
+      showToast("Evento creado exitosamente!", "success")
     }
 
     discardDraft()
+    await loadEvents() 
     await fetchEventsAndStats()
+
   } catch (error) {
     console.error("Failed to save event:", error)
+    console.log("BACKEND RESPONSE:", error.response?.data)
+    
     if (error.response?.data?.message) {
-      alert(error.response.data.message)
+      showToast(error.response.data.message)
     } else {
-      alert("Ocurrió un error. Asegúrate de que la fecha sea futura.")
+      showToast("Ocurrió un error. Asegúrate de que la fecha sea futura.", "error")
     }
   }
 }
@@ -383,17 +412,24 @@ const openEditModal = (evt) => {
   isEditing.value = true
   editingEventId.value = evt.id
 
-  let formattedDate = ''
-  if (evt.eventDate) {
-    const d = new Date(evt.eventDate)
+  const formatDateTimeLocal = (value) => {
+    if (!value) return ''
+
+    const d = new Date(value)
+
     const yyyy = d.getFullYear()
     const mm = String(d.getMonth() + 1).padStart(2, '0')
     const dd = String(d.getDate()).padStart(2, '0')
-    formattedDate = `${yyyy}-${mm}-${dd}`
+
+    const hh = String(d.getHours()).padStart(2, '0')
+    const min = String(d.getMinutes()).padStart(2, '0')
+
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`
   }
   eventForm.value = {
     name: evt.name,
-    eventDate: formattedDate,
+    startDateTime: formatDateTimeLocal(evt.startDateTime),
+    endDateTime: formatDateTimeLocal(evt.endDateTime),
     location: evt.location,
     description: evt.description,
     maxCapacity: evt.maxCapacity,
@@ -407,7 +443,8 @@ const openCreateModal = () => {
   editingEventId.value = null
   eventForm.value = {
     name: '',
-    eventDate: '',
+    startDateTime: '',
+    endDateTime: '',
     location: '',
     description: '',
     maxCapacity: null,
@@ -430,7 +467,7 @@ const openTicketsModal = async (evt) => {
     eventTickets.value = res.data.data?.items || res.data.data?.Items || []
   } catch (error) {
     console.error("Failed to load tickets:", error)
-    alert("Error cargando los usuarios.")
+    showToast("Error cargando los usuarios.", "error")
   } finally {
     loadingTickets.value = false
   }
@@ -447,14 +484,15 @@ const deleteEvent = async (id) => {
       await fetchEventsAndStats()
     } catch (error) {
       console.error("Failed to delete event:", error)
-      alert("Failed to delete event.")
+      showToast("Failed to delete event.")
     }
   }
 }
 const discardDraft = () => {
   eventForm.value = {
     name: '',
-    eventDate: '',
+    startDateTime: '',
+    endDateTime: '',
     location: '',
     description: '',
     maxCapacity: null,
@@ -484,18 +522,18 @@ const logout = () => {
       'h-screen w-64 fixed left-0 top-0 bg-[#f6f3f2] flex flex-col py-8 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0',
       isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
     ]">
-  
+
       <div class="px-8 mt-2 lg:mt-0 mb-12 flex justify-between items-center">
         <div>
           <h1 class="font-headline font-bold text-[#1c1b1b] text-xl tracking-tighter">Dashboard</h1>
           <p class="font-headline uppercase tracking-[0.05rem] text-[10px] text-secondary mt-1">Gestión de Eventos</p>
         </div>
-        
+
         <button @click="isMobileMenuOpen = false" class="lg:hidden text-secondary hover:text-error transition-colors">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
-      
+
       <nav class="flex-1 space-y-2">
         <a @click="currentSection = 'events'" :class="currentSection === 'events'
           ? 'bg-[#ffffff] text-[#745b00] shadow-sm'
@@ -511,7 +549,7 @@ const logout = () => {
           <span class="material-symbols-outlined">group</span>
           <span class="font-headline uppercase tracking-[0.05rem] text-xs">Usuarios</span>
         </a>-->
-        
+
         <a @click="currentSection = 'analytics'" :class="currentSection === 'analytics'
           ? 'bg-[#ffffff] text-[#745b00] shadow-sm'
           : 'text-[#656464] hover:bg-[#ebe7e7]'"
@@ -548,7 +586,7 @@ const logout = () => {
     <main
       class="flex-1 w-full lg:ml-64 p-3 sm:p-6 lg:p-6 lg:max-w-[calc(100%-16rem)] 2xl:max-w-[1600px] bg-surface min-h-screen overflow-x-hidden">
       <!-- Header Section -->
-       
+
       <header class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-0 mb-8 lg:mb-16">
         <div class="w-full flex items-center justify-between sm:justify-start gap-4">
           <div class="flex items-center gap-1">
@@ -556,7 +594,7 @@ const logout = () => {
               class="lg:hidden p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors flex items-center justify-center">
               <span class="material-symbols-outlined">menu</span>
             </button>
-            
+
           </div>
           <div class="flex items-center gap-2 sm:hidden">
             <div class="h8- w-10 rounded-full bg-surface-container-highest overflow-hidden">
@@ -567,7 +605,7 @@ const logout = () => {
         </div>
         <div class="hidden sm:flex items-center gap-3">
           <div class="text-right">
-            <p class="font-headline font-bold text-on-surface">Eileen Dimas</p>
+            <p class="font-headline font-bold text-on-surface">Admin</p>
           </div>
           <div class="h-12 w-12 lg:h-14 lg:w-14 rounded-full bg-surface-container-highest overflow-hidden">
             <img alt="Admin Avatar" class="w-full h-full object-cover"
@@ -581,7 +619,7 @@ const logout = () => {
       <!-- EVENTS SECTION -->
       <section v-if="currentSection === 'events'" class="bg-surface-container-low rounded-xl overflow-hidden">
         <h2 class="text-2xl sm:text-3xl lg:text-5xl font-bold font-headline tracking-tight text-on-surface">Listado
-              de Eventos</h2>
+          de Eventos</h2>
         <div
           class="p-4 lg:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-surface-container-high/30">
           <h3 class="text-xl font-headline font-bold text-on-surface">Eventos</h3>
@@ -640,7 +678,12 @@ const logout = () => {
                   </div>
                 </td>
                 <td class="px-4 sm:px-8 py-6 font-body text-sm text-secondary whitespace-nowrap">{{ new
-                  Date(evt.eventDate).toLocaleDateString() }}</td>
+                  Date(evt.startDateTime).toLocaleString() }}
+                  <br>
+                  <span class="text-xs text-secondary">
+                    hasta {{ new Date(evt.endDateTime).toLocaleString() }}
+                  </span>
+                </td>
                 <td class="px-4 sm:px-8 py-6 whitespace-nowrap">
                   <span class="text-sm font-body text-on-surface">Max: {{ evt.maxCapacity }}</span>
                 </td>
@@ -697,17 +740,10 @@ const logout = () => {
 
 
       <!----------------------------------------------->
-<AttendancePanel
-  v-show="currentSection === 'analytics'"
-  v-model:selectedEvent="selectedEvent"
-  :filteredEvents="filteredEvents"
-  :filteredTickets="filteredTickets"
-  :stats="stats"
-  :chartOptions="chartOptions"
-  :chartSeries="chartSeries"
-  :exportEventSummaryToExcel="exportEventSummaryToExcel"
-  :exportEventDetailToExcel="exportEventDetailToExcel"
-/>
+      <AttendancePanel v-show="currentSection === 'analytics'" v-model:selectedEvent="selectedEvent"
+        :filteredEvents="filteredEvents" :filteredTickets="filteredTickets" :stats="stats" :chartOptions="chartOptions"
+        :chartSeries="chartSeries" :exportEventSummaryToExcel="exportEventSummaryToExcel"
+        :exportEventDetailToExcel="exportEventDetailToExcel" />
       <!----------------------------------------------->
 
       <!-- SETTINGS SECTION -->
@@ -764,7 +800,7 @@ const logout = () => {
             </h4>
 
             <p class="text-secondary text-sm">
-              Correos y alertas automáticas
+              Correos y showToastas automáticas
             </p>
           </div>
 
@@ -837,6 +873,7 @@ const logout = () => {
           </div>
         </div>
       </teleport>
+
       <!-- New/Edit Event Modal -->
       <teleport to="body">
         <div v-if="isModalOpen"
@@ -862,12 +899,21 @@ const logout = () => {
                       placeholder="Nombre del evento" type="text" />
                   </div>
                   <div class="relative">
-                    <label
-                      class="block text-[10px] font-label uppercase tracking-widest text-secondary mb-2">Fecha</label>
-                    <input v-model="eventForm.eventDate" required
+                    <label class="block text-[10px] font-label uppercase tracking-widest text-secondary mb-2">Fecha
+                      inicio</label>
+                    <input v-model="eventForm.startDateTime"
                       class="w-full bg-surface-container-high border-none border-b-2 border-transparent focus:border-primary px-4 py-4 font-body outline-none rounded-t-lg transition-all"
-                      type="date" />
+                      type="datetime-local" required />
                   </div>
+
+                  <div class="relative">
+                    <label class="block text-[10px] font-label uppercase tracking-widest text-secondary mb-2">Fecha
+                      Fin</label>
+                    <input v-model="eventForm.endDateTime"
+                      class="w-full bg-surface-container-high border-none border-b-2 border-transparent focus:border-primary px-4 py-4 font-body outline-none rounded-t-lg transition-all"
+                      type="datetime-local" required />
+                  </div>
+
                   <div class="relative">
                     <label
                       class="block text-[10px] font-label uppercase tracking-widest text-secondary mb-2">Lugar</label>
@@ -914,6 +960,7 @@ const logout = () => {
           </div>
         </div>
       </teleport>
+
     </main>
     <!-- Footer Component -->
     <footer

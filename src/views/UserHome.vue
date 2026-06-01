@@ -68,12 +68,12 @@
 
               <div class="absolute top-4 left-4 bg-surface/90 backdrop-blur-md px-3 py-1 rounded-sm flex items-center">
                 <div class="w-1 h-4 bg-primary mr-2"></div>
-                <span v-if="isEventActive(evt)" class="font-label text-[10px] font-bold uppercase tracking-widest">
-                  Disponible
-                </span>
-
-                <span v-else class="font-label text-[10px] font-bold uppercase tracking-widest text-red-400">
-                  Finalizado
+                <span class="font-label text-[10px] font-bold uppercase tracking-widest" :class="{
+                  'text-green-500': evt.status === 'ACTIVE',
+                  'text-red-500': evt.status === 'COMPLETED',
+                  'text-yellow-500': evt.status === 'CANCELLED'
+                }">
+                  {{ evt.status }}
                 </span>
               </div>
             </div>
@@ -193,10 +193,12 @@
                       <span class="material-symbols-outlined text-secondary text-base mt-0.5">event_available</span>
                       <div>
                         <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary/70">Estado</p>
-                        <p class="text-sm font-bold"
-                          :class="(new Date(ticket.event?.eventDate || ticket.Event?.EventDate) > new Date()) && (ticket.event?.isActive || ticket.Event?.IsActive) ? 'text-green-600' : 'text-secondary/60'">
-                          {{ (new Date(ticket.event?.eventDate || ticket.Event?.EventDate) > new Date()) &&
-                            (ticket.event?.isActive || ticket.Event?.IsActive) ? '● Activo' : '● Finalizado' }}
+                        <p class="text-sm font-bold" :class="{
+                          'text-green-600': (ticket.event || ticket.Event).status === 'ACTIVE',
+                          'text-red-600': (ticket.event || ticket.Event).status === 'COMPLETED',
+                          'text-yellow-600': (ticket.event || ticket.Event).status === 'CANCELLED'
+                        }">
+                          ● {{ (ticket.event || ticket.Event).status }}
                         </p>
                       </div>
                     </div>

@@ -127,7 +127,7 @@ const handleForgotPassword = async () => {
           <div class="text-center">
             <router-link 
               to="/login" 
-              class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline underline-offset-4 transition-all"
+              class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline underline-offset-2 transition-all"
             >
               <span class="material-symbols-outlined text-[16px]">login</span>
               Volver a Iniciar sesión
@@ -136,14 +136,14 @@ const handleForgotPassword = async () => {
         </div>
 
         <!-- Footer Info -->
-        <div class="bg-gray-50 py-4 px-10 flex justify-center items-center">
+        <!--<div class="bg-gray-50 py-4 px-10 flex justify-center items-center">
           <p class="font-body text-xs text-secondary">
             ¿No tienes una cuenta? 
             <router-link class="text-primary font-semibold hover:underline underline-offset-4" to="/register">
               Registrarse
             </router-link>
           </p>
-        </div>
+        </div>-->
       </div>
 
       <!-- Global Footer -->
