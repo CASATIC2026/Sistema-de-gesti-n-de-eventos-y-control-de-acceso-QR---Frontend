@@ -12,7 +12,7 @@ const handleLogin = async () => {
   errorMessage.value = ''
   
   try {
-    const response = await api.post('/auth/login', {
+    const response = await api.post('/auth/register', {
       email: email.value,
       password: password.value
     })

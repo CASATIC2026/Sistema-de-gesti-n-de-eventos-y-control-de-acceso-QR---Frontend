@@ -182,9 +182,21 @@
                     <div class="flex items-start gap-2">
                       <span class="material-symbols-outlined text-secondary text-base mt-0.5">calendar_today</span>
                       <div>
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary/70">Fecha</p>
-                        <p class="text-sm font-medium">{{ formatDate((ticket.event || ticket.Event).eventDate ||
-                          (ticket.event || ticket.Event).EventDate) }}</p>
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary/70">
+                          Inicio
+                        </p>
+
+                        <p class="text-sm font-medium">
+                          {{ formatDate((ticket.event || ticket.Event).startDateTime) }}
+                        </p>
+
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary/70 mt-2">
+                          Fin
+                        </p>
+
+                        <p class="text-sm font-medium">
+                          {{ formatDate((ticket.event || ticket.Event).endDateTime) }}
+                        </p>
                       </div>
                     </div>
 
@@ -193,13 +205,16 @@
                       <span class="material-symbols-outlined text-secondary text-base mt-0.5">event_available</span>
                       <div>
                         <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary/70">Estado</p>
-                        <p class="text-sm font-bold" :class="{
-                          'text-green-600': (ticket.event || ticket.Event).status === 'ACTIVE',
-                          'text-red-600': (ticket.event || ticket.Event).status === 'COMPLETED',
-                          'text-yellow-600': (ticket.event || ticket.Event).status === 'CANCELLED'
-                        }">
-                          ● {{ (ticket.event || ticket.Event).status }}
+                        <p class="text-sm font-bold" :class="(ticket.event || ticket.Event).isActive
+                          ? 'text-green-600'
+                          : 'text-red-600'">
+                          ● {{ (ticket.event || ticket.Event).isActive ? 'ACTIVO' : 'INACTIVO' }}
                         </p>
+
+                        <!-- <pre class="text-xs bg-black text-white p-2 rounded mt-2">
+                      {{ JSON.stringify(ticket.event || ticket.Event, null, 2) }}
+                    </pre> -->
+
                       </div>
                     </div>
 

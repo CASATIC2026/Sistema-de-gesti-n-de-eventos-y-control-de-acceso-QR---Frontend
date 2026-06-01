@@ -79,6 +79,7 @@ const emit = defineEmits(["update:selectedEvent"])
   <!-- TABLE (REPORTES ARRIBA) -->
   <!-- ===================== -->
   <!--<div class="overflow-x-auto bg-surface-container-low rounded-xl">
+  
 
     <table class="w-full">
 

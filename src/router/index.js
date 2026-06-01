@@ -25,7 +25,11 @@ const router = createRouter({
   name: 'ResetPassword',
   component: ResetPassword
 },
-
+{
+  path: '/complete-profile',
+  name: 'CompleteProfile',
+  component: () => import('../views/CompleteProfile.vue')
+},
     {
       path: '/register',
       component: () => import('../views/Register.vue')
