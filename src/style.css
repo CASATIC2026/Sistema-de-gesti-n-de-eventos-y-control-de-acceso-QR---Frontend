@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   DESIGN TOKENS (LIGHT + GOLD THEME)
+========================= */
+:root {
+  --surface: #ffffff;
+  --surface-container-high: #f8f8f8;
+  --surface-container-low: #ffffff;
+  --surface-container-lowest: #ffffff;
+
+  --on-surface: #111111;
+  --on-surface-variant: #555555;
+
+  /* 🔥 TU COLOR PRINCIPAL (GOLD) */
+  --primary: #d4af37; /* dorado elegante */
+  --primary-dark: #b8942e;
+
+  --secondary: #6b7280;
+  --error: #dc2626;
+
+  --outline-variant: rgba(0, 0, 0, 0.08);
+}
+
+/* =========================
+   BACKGROUNDS
+========================= */
+.bg-surface {
+  background-color: var(--surface);
+}
+
+.bg-surface-container-high {
+  background-color: var(--surface-container-high);
+}
+
+.bg-surface-container-low {
+  background-color: var(--surface-container-low);
+}
+
+.bg-surface-container-lowest {
+  background-color: var(--surface-container-lowest);
+}
+
+/* =========================
+   TEXT COLORS
+========================= */
+.text-on-surface {
+  color: var(--on-surface);
+}
+
+.text-on-surface-variant {
+  color: var(--on-surface-variant);
+}
+
+.text-secondary {
+  color: var(--secondary);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.text-error {
+  color: var(--error);
+}
+
+/* =========================
+   BORDER
+========================= */
+.border-outline-variant {
+  border-color: var(--outline-variant);
+}
+
+/* =========================
+   NAV GLASS (LIGHT VERSION)
+========================= */
+.glass-nav {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+/* =========================
+   GOLD BUTTON STYLE
+========================= */
+.gold-gradient {
+  background: linear-gradient(135deg, #d4af37, #b8942e);
+  color: #111;
+}
+
+/* =========================
+   FONT FALLBACKS
+========================= */
+.font-headline {
+  font-family: system-ui, sans-serif;
+  font-weight: 600;
+}
+
+.font-body {
+  font-family: system-ui, sans-serif;
+}
+
+.font-label {
+  font-family: system-ui, sans-serif;
+}
+
+
+
+
