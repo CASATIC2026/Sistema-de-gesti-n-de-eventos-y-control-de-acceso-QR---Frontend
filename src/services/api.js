@@ -4,7 +4,7 @@ const api = axios.create({
 //baseURL: "https://localhost:7206/api",
 //baseURL: "https://192.168.0.113:7206/api",
 //baseURL: "http://192.168.137.21:5255/api", //CORECTA Q CORRE EN LA USAM
-baseURL: "http://localhost:5255/api",
+baseURL: "https://sistema-de-gesti-n-de-eventos-y-control.onrender.com/",
 });
 
 // interceptor para agregar token automáticamente
