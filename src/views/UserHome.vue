@@ -58,10 +58,11 @@
       <div>
         <div class="flex items-center gap-3 mb-4">
   <img 
-    src="/src/views/qrventus.jpg"
+    src="./QRventus.jpg"
     alt="QRVentus"
     class="h-14 w-14 rounded-xl object-cover shadow-md"
   />
+
 
   <div>
     <h1 class="font-headline text-4xl md:text-5xl font-bold text-on-surface tracking-tight leading-none">
@@ -407,6 +408,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
+import img from "./QRventus.jpg";
+
 const router = useRouter()
 const events = ref([])
 const loading = ref(true)
