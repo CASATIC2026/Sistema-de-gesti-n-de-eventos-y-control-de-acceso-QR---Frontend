@@ -476,7 +476,7 @@ const buyTicket = async (eventId) => {
   buyingTicketId.value = eventId
 
   try {
-    const response = await api.post('/ticket/register', { eventId })
+    const response = await api.post('/ticket/register', { EventId: eventId, UserEmail: userEmail.value })
     showToast(response.data.message || 'Registro exitoso, revisa tu correo', 'success')
     fetchMyTickets() // update user's tickets
   } catch (error) {
@@ -524,7 +524,7 @@ const fetchMyTickets = async () => {
     const response = await api.get('/ticket/my-tickets')
     myTickets.value = response.data.data || []
   } catch (error) {
-    console.error('Error fetching my tickets:', error)
+    console.error('Error sl recuperar los tikets:', error)
   } finally {
     loadingTickets.value = false
   }
